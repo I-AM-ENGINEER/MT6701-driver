@@ -1,0 +1,98 @@
+#include <stdlib.h>
+#include <stdbool.h>
+#include "mt6701_interface.h"
+#include "mt6701_base.h"
+
+uint8_t mt6701_simple_i2c_init( mt6701_handle_t *handle ){
+	uint8_t res = 0;
+
+	if(handle == NULL){
+		return MT6701_ERR_HANDLER_NULL;
+	}
+
+	handle->delay = mt6701_interface_delay;
+	handle->debug_print = mt6701_interface_debug_print;
+
+	handle->i2c_read = mt6701_interface_i2c_read;
+	handle->i2c_write = mt6701_interface_i2c_write;
+
+	if(handle->debug_print == NULL){
+		return MT6701_ERR_GENERAL;
+	}
+
+	res = mt6701_interface_set(handle, MT6701_INTERFACE_I2C);
+	if(res != MT6701_OK){
+		handle->debug_print("mt6701: Cannot set interface: %d\n", res);
+		return res;
+	}
+
+	res = mt6701_init(handle);
+	if(res != MT6701_OK){
+		handle->debug_print("mt6701: Cannot init: %d\n", res);
+		return res;
+	}
+
+	res = mt6701_mode_set(handle, MT6701_MODE_ABZ);
+	if(res != MT6701_OK){
+		handle->debug_print("mt6701: Cannot set mode: %d\n", res);
+		return res;
+	}
+
+	res = mt6701_abz_pulse_per_round_set(handle, 16);
+	if(res != MT6701_OK){
+		handle->debug_print("mt6701: Cannot set rounds per rotation: %d\n", res);
+		return res;
+	}
+
+	return MT6701_OK;
+}
+
+uint8_t mt6701_simple_i2c_read_angle( mt6701_handle_t *handle, float *angle ){
+	uint8_t res;
+	bool track_loss;
+
+	res = mt6701_read(handle, &angle, NULL, NULL, &track_loss);
+
+	if(res != MT6701_OK){
+		handle->debug_print("mt6701: Read fault: %d\n", res);
+		return res;
+	}
+	
+	if(track_loss){
+		handle->debug_print("mt6701: Track loss\n");
+		return MT6701_ERR_GENERAL;
+	}
+	
+	return MT6701_OK;
+}
+
+uint8_t mt6701_simple_ssi_init( mt6701_handle_t *handle ){
+	uint8_t res = 0;
+
+	if(handle == NULL){
+		return MT6701_ERR_HANDLER_NULL;
+	}
+
+	handle->delay = mt6701_interface_delay;
+	handle->debug_print = mt6701_interface_debug_print;
+
+	handle->ssi_read = mt6701_interface_ssi_read;
+
+	if(handle->debug_print == NULL){
+		return MT6701_ERR_GENERAL;
+	}
+
+	res = mt6701_interface_set(handle, MT6701_INTERFACE_SSI);
+	if(res != MT6701_OK){
+		handle->debug_print("mt6701: Cannot set interface: %d\n", res);
+		return res;
+	}
+
+	res = mt6701_init(handle);
+	if(res != MT6701_OK){
+		handle->debug_print("mt6701: Cannot init: %d\n", res);
+		return res;
+	}
+
+	return MT6701_OK;
+}
