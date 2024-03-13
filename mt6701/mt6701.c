@@ -11,7 +11,6 @@ static uint8_t mt6701_check_config_mode( mt6701_handle_t *handle ){
 	}
 
 	if(handle->interface != MT6701_INTERFACE_I2C){
-		handle->debug_print("config available only with I2C interface\n");
 		return MT6701_ERR_CONFIG_UNAVAILABLE;
 	}
 
@@ -138,9 +137,6 @@ uint8_t mt6701_mode_set( mt6701_handle_t *handle, mt6701_mode_t mode ){
 }
 
 uint8_t mt6701_interface_set( mt6701_handle_t *handle, mt6701_interface_t interface ){
-	uint8_t res;
-	uint8_t data;
-
 	if(handle == NULL){
 		return MT6701_ERR_HANDLER_NULL;
 	}
@@ -457,16 +453,12 @@ uint8_t mt6701_init( mt6701_handle_t *handle ){
 		return MT6701_ERR_GENERAL;
 	}
 
-	if(handle->debug_print == NULL){
-		return MT6701_ERR_GENERAL;
-	}
-
 	handle->initialized = true;
 
 	return MT6701_OK;
 }
 
-uint8_t my6701_programm( mt6701_handle_t *handle ){
+uint8_t mt6701_programm_eeprom( mt6701_handle_t *handle ){
 	uint8_t res;
 
 	res = mt6701_check_config_mode(handle);
@@ -498,7 +490,6 @@ uint8_t mt6701_read_raw( mt6701_handle_t *handle, uint16_t *angle_raw, mt6701_st
 	uint8_t res;
 	uint8_t data[3];
 	uint8_t status;
-	uint8_t readed_crc;
 	uint16_t angle_u16;
 
 	if(handle == NULL){
@@ -524,14 +515,17 @@ uint8_t mt6701_read_raw( mt6701_handle_t *handle, uint16_t *angle_raw, mt6701_st
   		angle_u16 |= ((uint16_t)data[1] << (8-MT6701_REG_ANGLE0_POS));
 	}else{
 		res = handle->ssi_read(data, 3);
+		if(res != 0){
+			return MT6701_ERR_IO;
+		}
 
 		angle_u16  = (uint16_t)(data[1] >> 2);
 		angle_u16 |= ((uint16_t)data[0] << 6);
 		
-		status  =  data[2] >> 6;
+		status  = (data[2] >> 6);
 		status |= (data[1] & 0x03) << 2;
 
-		readed_crc = data[2] & 0x3F;
+		// I dont check CRC6, becouse i soo stupid to implement this rare shit
 
 		if(field_status != NULL){
 			*field_status = status & 0x03;
@@ -552,10 +546,11 @@ uint8_t mt6701_read_raw( mt6701_handle_t *handle, uint16_t *angle_raw, mt6701_st
 				*track_loss = false;
 			}
 		}
-		handle->debug_print("SSI CRC now unsupported\n");
 	}
 
-	*angle_raw = angle_u16; 
+	if(angle_raw != NULL){
+		*angle_raw = angle_u16; 
+	}
 	return MT6701_OK;
 }
 
@@ -569,8 +564,10 @@ uint8_t mt6701_read( mt6701_handle_t *handle, float *angle, mt6701_status_t *fie
 		return res;
 	}
 
-	angle_f = (float)angle_u16 * (360.0f/16384.0f);
-	*angle = angle_f;
+	if(angle != NULL){
+		angle_f = (float)angle_u16 * (360.0f/16384.0f);
+		*angle = angle_f;
+	}
 
 	return MT6701_OK;
 }

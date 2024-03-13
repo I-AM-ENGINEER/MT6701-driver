@@ -11,6 +11,3 @@ uint8_t mt6701_interface_ssi_read( uint8_t *data, uint8_t len );
 
 // Write your delay implementation
 void mt6701_interface_delay( uint32_t ms );
-
-// If need, you can set debug printf function
-void mt6701_interface_debug_print( const char *const fmt, ... );

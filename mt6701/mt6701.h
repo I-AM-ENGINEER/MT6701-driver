@@ -77,18 +77,7 @@
 #define MT6701_REG_A_STOP8_MASK				(0x0F << MT6701_REG_A_STOP8_POS)
 #define MT6701_REG_A_START8_MASK			(0x0F << MT6701_REG_A_START8_POS)
 #define MT6701_REG_A_START0_MASK			(0xFF << MT6701_REG_A_START0_POS)
-#define MT6701_REG_A_STOP0_MASK				(0xFF << MT6701_REG_A_STOP0_POS)		
-
-typedef struct{
-    uint8_t (*i2c_read)( uint8_t reg, uint8_t *data );
-    uint8_t (*i2c_write)( uint8_t reg, uint8_t data );
-    uint8_t (*ssi_read)( uint8_t *data, uint8_t len );
-	void (*delay)( uint32_t ms );
-    void (*debug_print)( const char *const fmt, ... );
-    mt6701_interface_t interface;
-	mt6701_mode_t mode;
-	bool initialized;
-} mt6701_handle_t; 
+#define MT6701_REG_A_STOP0_MASK				(0xFF << MT6701_REG_A_STOP0_POS)		 
 
 typedef enum{
 	MT6701_MODE_NONE,
@@ -107,28 +96,28 @@ typedef enum{
 
 typedef enum{
     MT6701_INTERFACE_NONE,
-    MT6701_INTERFACE_I2C,
-    MT6701_INTERFACE_SSI,
+	MT6701_INTERFACE_I2C,
+	MT6701_INTERFACE_SSI,
 } mt6701_interface_t;
 
 typedef enum{
-    MT6701_DIRECTION_CW		= 0x0,
-    MT6701_DIRECTION_CCW	= 0x1,
+	MT6701_DIRECTION_CW		= 0x0,
+	MT6701_DIRECTION_CCW	= 0x1,
 } mt6701_direction_t;
 
 typedef enum{
-    MT6701_PWM_FREQ_994_4	= 0x0,
-    MT6701_PWM_FREQ_497_2	= 0x1,
+	MT6701_PWM_FREQ_994_4	= 0x0,
+	MT6701_PWM_FREQ_497_2	= 0x1,
 } mt6701_pwm_freq_t;
 
 typedef enum{
-    MT6701_PWM_POL_HIGH		= 0x0,
-    MT6701_PWM_POL_LOW		= 0x1,
+	MT6701_PWM_POL_HIGH		= 0x0,
+	MT6701_PWM_POL_LOW		= 0x1,
 } mt6701_pwm_pol_t;
 
 typedef enum{
-    MT6701_OUT_MODE_ANALOG	= 0x0,
-    MT6701_OUT_MODE_PWM		= 0x1,
+	MT6701_OUT_MODE_ANALOG	= 0x0,
+	MT6701_OUT_MODE_PWM		= 0x1,
 } mt6701_out_mode_t;
 
 typedef enum{
@@ -145,7 +134,22 @@ typedef enum{
 	MT6701_STATUS_NORM			= 0x0,
 	MT6701_STATUS_FIELD_STRONG	= 0x1,
 	MT6701_STATUS_FIELD_WEAK	= 0x2,
+	MT6701_STATUS_FIELD_ERROR	= 0x3,
 } mt6701_status_t;
+
+typedef struct{
+	uint8_t (*i2c_read)( uint8_t reg, uint8_t *data );
+	uint8_t (*i2c_write)( uint8_t reg, uint8_t data );
+	uint8_t (*ssi_read)( uint8_t *data, uint8_t len );
+	void (*delay)( uint32_t ms );
+	mt6701_interface_t interface;
+	mt6701_mode_t mode;
+	bool initialized;
+} mt6701_handle_t;
+
+#ifdef __cplusplus
+extern "C"{
+#endif 
 
 /// @brief Enable -a-b-z UVW mode (only for QFN package)
 /// @param handle mt6701 handler
@@ -257,11 +261,15 @@ uint8_t mt6701_out_mode_set( mt6701_handle_t *handle, mt6701_out_mode_t out_mode
 /// @brief Save current settings to EEPROM.
 /// @param handle mt6701 handler
 /// @return On OK return 0, else see MT6701_ERR codes
-uint8_t my6701_programm( mt6701_handle_t *handle );
+uint8_t mt6701_programm_eeprom( mt6701_handle_t *handle );
 
-/// @brief Perfom init for mt6701. Before call interface MUST be selected and selected interface handlers MUST be defined, plus delay and debug_print handlers MUST be set
+/// @brief Perfom init for mt6701. Before call interface MUST be selected and selected interface handlers MUST be defined, plus delay handler MUST be set
 /// @param handle mt6701 handler
 /// @return On OK return 0, else see MT6701_ERR codes
 uint8_t mt6701_init( mt6701_handle_t *handle );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // !MT6701_H__
