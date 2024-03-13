@@ -22,44 +22,38 @@ uint8_t mt6701_simple_i2c_init( mt6701_handle_t *handle ){
 	res = mt6701_interface_set(handle, MT6701_INTERFACE_I2C);
 	if(res != MT6701_OK){
 		mt6701_print("mt6701: Cannot set interface: %d\n", res);
-		return res;
+		return res + 100;
 	}
 
 	res = mt6701_init(handle);
 	if(res != MT6701_OK){
 		mt6701_print("mt6701: Cannot init: %d\n", res);
-		return res;
+		return res + 200;
 	}
 
 	res = mt6701_mode_set(handle, MT6701_MODE_ABZ);
 	if(res != MT6701_OK){
 		mt6701_print("mt6701: Cannot set mode: %d\n", res);
-		return res;
+		return res + 300;
 	}
 
 	res = mt6701_abz_pulse_per_round_set(handle, 16);
 	if(res != MT6701_OK){
 		mt6701_print("mt6701: Cannot set rounds per rotation: %d\n", res);
-		return res;
+		return res + 400;
 	}
 
 	return MT6701_OK;
 }
 
-uint8_t mt6701_simple_i2c_read_angle( mt6701_handle_t *handle, float *angle ){
+uint8_t mt6701_simple_read_angle( mt6701_handle_t *handle, float *angle ){
 	uint8_t res;
-	bool track_loss;
 
-	res = mt6701_read(handle, &angle, NULL, NULL, &track_loss);
+	res = mt6701_read(handle, &angle, NULL, NULL, NULL);
 
 	if(res != MT6701_OK){
 		mt6701_print("mt6701: Read fault: %d\n", res);
 		return res;
-	}
-	
-	if(track_loss){
-		mt6701_print("mt6701: Track loss\n");
-		return MT6701_ERR_GENERAL;
 	}
 	
 	return MT6701_OK;
