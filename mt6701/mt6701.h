@@ -183,7 +183,7 @@ uint8_t mt6701_interface_set( mt6701_handle_t *handle, mt6701_interface_t interf
 
 /// @brief Set zero offset in 12 bit position value
 /// @param handle mt6701 handler
-/// @param zero_angle Raw angle [0...16383]
+/// @param zero_angle Raw angle [0...4095]
 /// @return On OK return 0, else see MT6701_ERR codes
 uint8_t mt6701_zero_set_raw( mt6701_handle_t *handle, uint16_t zero_angle );
 
@@ -216,8 +216,8 @@ uint8_t mt6701_read( mt6701_handle_t *handle, float *angle, mt6701_status_t *fie
 
 /// @brief Set start and stop angles raw
 /// @param handle 
-/// @param start [0...16383]
-/// @param stop [0...16383]
+/// @param start [0...4095]
+/// @param stop [0...4095]
 /// @return On OK return 0, else see MT6701_ERR codes
 uint8_t mt6701_a_start_stop_set_raw( mt6701_handle_t *handle, uint16_t start, uint16_t stop );
 
